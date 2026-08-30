@@ -64,11 +64,15 @@ this repo; nothing here is an unexamined pasted answer.
   says which date a time-boxed question should anchor on. There's no single
   correct answer here, so the system is designed to make its assumption
   visible in every answer rather than pick one silently (see Decision Log).
-- **Verifying an agent I can't fully test.** With no LLM API key or
-  monday.com account available during the build, I verified the
-  non-LLM-dependent layers with unit tests and verified the full chat loop
-  by substituting a stubbed LLM client in the same tool-use protocol Claude
-  uses, rather than shipping the orchestration layer unexercised.
+- **Verifying an agent I couldn't test yet.** With no LLM API key available
+  for most of the build, I verified the non-LLM-dependent layers with unit
+  tests and verified the full chat loop by substituting a stubbed LLM client
+  in the same tool-use protocol, rather than shipping the orchestration
+  layer unexercised. A Groq API key became available later and was used for
+  a real, live test (see the LLM provider entry in "Trade-offs" in the
+  Decision Log) — it surfaced and fixed two real cross-provider tool-calling
+  bugs that the stub couldn't have caught, which is exactly why "verified
+  with a stub" and "verified live" aren't the same claim.
 - **Sandbox-specific Docker networking.** `npm ci` inside the containerized
   build was unreliable on this development sandbox's network (a known npm
   CLI issue under unstable connections), unrelated to the Dockerfile itself
@@ -108,7 +112,7 @@ src/data/repo.py (DataRepo)   cached cleaned DataFrames + quality report for a s
         ▼
 src/agent/tools.py        BI functions (pipeline, revenue, operations, leadership brief)
 src/agent/orchestrator.py tool-use loop + system prompt
-src/agent/llm_adapter.py  provider seam (Anthropic implemented, OpenAI stubbed)
+src/agent/llm_adapter.py  provider seam (Groq, Anthropic, OpenAI all implemented; Groq is default)
         │
         ▼
 backend/main.py (FastAPI)   /api/chat, /api/data-quality, /api/health
@@ -151,7 +155,7 @@ pip install -r requirements-dev.txt   # runtime deps + pytest/httpx
 python -m pytest tests/ -v            # no credentials needed
 
 # Mock mode (default) -- runs entirely on fixtures/, no monday.com account needed
-export ANTHROPIC_API_KEY=sk-...
+export GROQ_API_KEY=gsk-...   # free at console.groq.com, no card required
 uvicorn backend.main:app --reload --port 8000
 ```
 
@@ -189,7 +193,7 @@ put the variables from `.env.example` into a `.env` file next to
 `docker-compose.yml` (docker compose loads it automatically) and re-run:
 
 ```bash
-cat .env.example > .env   # then fill in ANTHROPIC_API_KEY, MONDAY_API_TOKEN, etc.
+cat .env.example > .env   # then fill in GROQ_API_KEY, MONDAY_API_TOKEN, etc.
 docker compose up --build
 ```
 
@@ -198,7 +202,7 @@ Or without compose:
 ```bash
 docker build -t skylark-bi-agent .
 docker run -p 8000:8000 \
-  -e ANTHROPIC_API_KEY=sk-... \
+  -e GROQ_API_KEY=gsk-... \
   -e MONDAY_MODE=live \
   -e MONDAY_API_TOKEN=eyJ... \
   -e MONDAY_WORK_ORDERS_BOARD_ID=... \
@@ -231,7 +235,7 @@ docker run --rm -e MONDAY_API_TOKEN=eyJ... skylark-bi-agent \
    export MONDAY_API_TOKEN=eyJ...
    export MONDAY_WORK_ORDERS_BOARD_ID=<from step 2>
    export MONDAY_DEALS_BOARD_ID=<from step 2>
-   export ANTHROPIC_API_KEY=sk-...
+   export GROQ_API_KEY=gsk-...
    uvicorn backend.main:app --port 8000
    ```
 
@@ -270,8 +274,11 @@ See `.env.example`. Summary:
 | `MONDAY_WORK_ORDERS_BOARD_ID` | — | required when `MONDAY_MODE` is `live` or `api` |
 | `MONDAY_DEALS_BOARD_ID` | — | required when `MONDAY_MODE` is `live` or `api` |
 | `MONDAY_MCP_URL` | `https://mcp.monday.com/mcp` | override only for testing against a different MCP endpoint |
-| `LLM_PROVIDER` | `anthropic` | `anthropic` (implemented) or `openai` (stub, see `src/agent/llm_adapter.py`) |
-| `ANTHROPIC_API_KEY` | — | required for the chat agent to run |
+| `LLM_PROVIDER` | `groq` | `groq` (free tier, default), `anthropic`, or `openai` -- all three fully implemented |
+| `GROQ_API_KEY` | — | required when `LLM_PROVIDER=groq`; free at console.groq.com |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Groq's current recommended tool-use model |
+| `ANTHROPIC_API_KEY` | — | required when `LLM_PROVIDER=anthropic` |
+| `OPENAI_API_KEY` | — | required when `LLM_PROVIDER=openai` |
 | `CORS_ALLOW_ORIGINS` | `*` | backend: comma-separated allowed origins (set to the frontend's URL when hosted separately) |
 | `VITE_API_BASE` | *(empty)* | frontend build-time: backend URL when hosted separately; leave empty for same-origin (single-service) deploys |
 

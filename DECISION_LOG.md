@@ -85,11 +85,23 @@ image pair would mirror the "two services" deploy option, but for a
 graded, link-testable prototype, one image that runs with a single
 `docker run`/`docker compose up` is less for a reviewer to get wrong.
 
-**LLM provider is pluggable but only Anthropic is implemented.** The choice
-of provider/API key wasn't settled at build time, so `src/agent/llm_adapter.py`
-defines a small `LLMAdapter` protocol; `AnthropicAdapter` is complete,
-`OpenAIAdapter` is a documented stub with the same interface. Swapping is a
-one-line change in `src/config.py` plus filling in the stub.
+**Groq as the default LLM, over paying for Anthropic/OpenAI.** The provider
+choice was explicitly left open, and a free option turned out to exist:
+Groq's API is OpenAI-compatible with a genuinely free tier (no card) and
+real tool-calling. I implemented one `OpenAICompatibleAdapter` (works
+against real OpenAI or any compatible provider via `base_url`) and pointed
+`GroqAdapter` at it with `openai/gpt-oss-120b` — Groq's recommended model
+for tool use since deprecating `llama-3.3-70b-versatile` in June 2026. This
+finishes the OpenAI adapter for free (same code path); `AnthropicAdapter`
+stays fully working via `LLM_PROVIDER=anthropic`. **This is the only path
+here that's been live-tested against its real API**, and it earned its
+keep: it surfaced two cross-provider bugs no stub or doc-reading would have
+caught — Groq rejects an explicit `tool_calls: null` on a plain-text turn
+(must be absent, not null), and rejects `null` for an optional parameter
+unless its schema declares that property nullable (Claude just omits unused
+params instead). Both fixed in `llm_adapter.py`, with network-free
+regression tests (`tests/test_llm_adapter.py`) — the clearest case in this
+project of "verified against a stub" not being "verified live."
 
 **Tools return aggregates, not raw rows.** Every tool caps and summarizes
 (counts, sums, breakdowns, a small sample) instead of returning full board
@@ -103,8 +115,9 @@ context window.
   without a resolvable client code, instead of excluding them from joins.
 - A real caching layer with TTL + background refresh instead of "cache for
   the process lifetime, manual refresh button."
-- Finish the OpenAI adapter and add a lightweight eval set (a dozen founder
-  questions with expected tool calls) to catch prompt regressions.
+- Add a lightweight eval set (a dozen founder questions with expected tool
+  calls, run against all three LLM providers) to catch prompt regressions
+  and provider-specific behavior differences going forward.
 - Push tool-call transcripts into the UI (collapsible) so a skeptical founder
   can see exactly which board query backs a number, not just trust the
   agent's summary.

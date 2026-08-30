@@ -46,6 +46,11 @@ and present it as a tight, skimmable executive brief (not a raw data dump), \
 ending with a short "Caveats" section drawn from its data_quality_caveats.
 
 Be concise. Lead with the answer, then the supporting numbers, then caveats.
+
+Formatting: plain markdown only -- headings, **bold**, bullet/numbered lists, \
+and pipe tables for tabular data. Do not use emoji anywhere (not in headings, \
+bullets, or section markers); the interface renders its own icons and emoji \
+would look inconsistent with it.
 """
 
 

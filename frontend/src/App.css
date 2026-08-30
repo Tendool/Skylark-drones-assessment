@@ -481,6 +481,44 @@
   font-size: 14px;
 }
 
+.message-bubble hr {
+  border: none;
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
+  margin: 10px 0;
+}
+
+.message-bubble .table-scroll {
+  overflow-x: auto;
+  margin: 4px 0 10px;
+}
+
+.message-bubble table {
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 100%;
+}
+
+.message-bubble th,
+.message-bubble td {
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  padding: 6px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.message-bubble th {
+  font-weight: 600;
+  background: rgba(128, 128, 128, 0.08);
+}
+
+.message-user .message-bubble th {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.message-assistant .message-bubble-wrap {
+  max-width: 82%;
+}
+
 .message-user .message-bubble {
   background: var(--user-bubble);
   color: #ffffff;

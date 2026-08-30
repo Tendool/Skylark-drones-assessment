@@ -52,4 +52,7 @@ def get_monday_client() -> MondayClient:
 
 
 def get_llm_provider() -> str:
-    return os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    # Groq is the default: a genuinely free tier, and the only provider this
+    # project has actually been live-tested against (see DECISION_LOG.md).
+    # Set LLM_PROVIDER=anthropic (+ ANTHROPIC_API_KEY) to use Claude instead.
+    return os.environ.get("LLM_PROVIDER", "groq").lower()
