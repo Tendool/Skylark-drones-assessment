@@ -1,5 +1,15 @@
 import { BrandMark, RefreshIcon } from "./icons.jsx";
 
+function SkeletonBlock() {
+  return (
+    <div className="quality-section skeleton-block">
+      <div className="skeleton-line" style={{ width: "40%" }} />
+      <div className="skeleton-line" style={{ width: "95%" }} />
+      <div className="skeleton-line" style={{ width: "80%" }} />
+    </div>
+  );
+}
+
 function QualitySection({ report }) {
   if (!report) return null;
   return (
@@ -71,7 +81,10 @@ export default function Sidebar({ health, quality, onRefresh, refreshing }) {
             )}
           </>
         ) : (
-          <p className="quality-note">Loading…</p>
+          <>
+            <SkeletonBlock />
+            <SkeletonBlock />
+          </>
         )}
       </div>
 

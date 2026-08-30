@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Sidebar from "./Sidebar.jsx";
-import MarkdownLite from "./markdownLite.jsx";
-import { MoonIcon, SendIcon, SparkleIcon, SunIcon } from "./icons.jsx";
+import Message from "./Message.jsx";
+import { BotIcon, MoonIcon, SendIcon, SparkleIcon, SunIcon } from "./icons.jsx";
 import { getDataQuality, getHealth, refreshData, resetSession, sendChatMessage } from "./api.js";
 import "./App.css";
 
@@ -154,25 +154,22 @@ export default function App() {
           )}
 
           {messages.map((m, i) => (
-            <div key={i} className={`message-row message-${m.role}`}>
-              <div className={`avatar ${m.role === "user" ? "avatar-user" : "avatar-assistant"}`}>
-                {m.role === "user" ? "You" : "SD"}
-              </div>
-              <div className="message-bubble">
-                <MarkdownLite text={m.content} />
-              </div>
-            </div>
+            <Message key={i} role={m.role} content={m.content} />
           ))}
 
           {sending && (
             <div className="message-row message-assistant">
-              <div className="avatar avatar-assistant">SD</div>
-              <div className="message-bubble">
-                <span className="typing-dots">
-                  <span />
-                  <span />
-                  <span />
-                </span>
+              <div className="avatar avatar-assistant">
+                <BotIcon />
+              </div>
+              <div className="message-bubble-wrap">
+                <div className="message-bubble">
+                  <span className="typing-dots">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                </div>
               </div>
             </div>
           )}

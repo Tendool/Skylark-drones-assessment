@@ -50,6 +50,7 @@ Integration Requirements.
 ## Repo layout
 
 ```
+Dockerfile, docker-compose.yml  Single-container build (frontend + backend); see "Running with Docker"
 backend/main.py             FastAPI app: REST endpoints, session state, static-serves frontend/dist
 frontend/                   React + Vite chat UI (src/App.jsx, src/Sidebar.jsx)
 src/monday/                 monday.com client (mock + real) and board schema
@@ -66,8 +67,8 @@ tests/                      pytest suite (no API keys required)
 Backend (Python):
 
 ```bash
-pip install -r requirements.txt
-python -m pytest tests/ -v          # no credentials needed
+pip install -r requirements-dev.txt   # runtime deps + pytest/httpx
+python -m pytest tests/ -v            # no credentials needed
 
 # Mock mode (default) -- runs entirely on fixtures/, no monday.com account needed
 export ANTHROPIC_API_KEY=sk-...
@@ -91,6 +92,45 @@ serve it (`backend/main.py` mounts `frontend/dist` at `/` when present):
 ```bash
 cd frontend && npm run build && cd ..
 uvicorn backend.main:app --port 8000    # now serves both the UI and the API
+```
+
+## Running with Docker
+
+One image, one container: a multi-stage `Dockerfile` builds the React app and
+bundles it with the FastAPI backend, which serves both.
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:8000 — runs in mock mode by default, no credentials
+needed. To point it at a real monday.com account and enable the chat agent,
+put the variables from `.env.example` into a `.env` file next to
+`docker-compose.yml` (docker compose loads it automatically) and re-run:
+
+```bash
+cat .env.example > .env   # then fill in ANTHROPIC_API_KEY, MONDAY_API_TOKEN, etc.
+docker compose up --build
+```
+
+Or without compose:
+
+```bash
+docker build -t skylark-bi-agent .
+docker run -p 8000:8000 \
+  -e ANTHROPIC_API_KEY=sk-... \
+  -e MONDAY_MODE=live \
+  -e MONDAY_API_TOKEN=eyJ... \
+  -e MONDAY_WORK_ORDERS_BOARD_ID=... \
+  -e MONDAY_DEALS_BOARD_ID=... \
+  skylark-bi-agent
+```
+
+The one-time monday.com import script also runs inside the image:
+
+```bash
+docker run --rm -e MONDAY_API_TOKEN=eyJ... skylark-bi-agent \
+  python scripts/import_to_monday.py --mode live
 ```
 
 ## Connecting to a real monday.com account
@@ -123,9 +163,11 @@ secrets in the service settings.
 The backend (`backend/main.py`) and frontend (`frontend/`) can ship as one
 service or two:
 
-- **One service** (simplest): `npm run build` in `frontend/`, then deploy the
-  repo to something that runs `uvicorn backend.main:app` — it serves the
-  built UI itself. Works well on Render/Railway/Fly.io.
+- **One service** (simplest): the `Dockerfile` builds and serves both from a
+  single container — push it to any container host (Render, Railway,
+  Fly.io, ECS, Cloud Run). Without Docker, `npm run build` in `frontend/`
+  then deploy the repo to something that runs `uvicorn backend.main:app`
+  works the same way.
 - **Two services**: deploy `frontend/` to a static host (e.g. Vercel) and
   `backend/` to an API host (e.g. Render), setting `VITE_API_BASE` (frontend
   build-time env var) to the backend's public URL and `CORS_ALLOW_ORIGINS`

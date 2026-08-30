@@ -72,6 +72,14 @@ demonstrates an actual frontend/backend separation and deploys flexibly —
 one service (FastAPI serving the built React app) or two (static frontend +
 API host) — rather than being locked into Streamlit's runtime model.
 
+**One Docker image, not two.** The `Dockerfile` is a multi-stage build: a
+Node stage builds the React app, then a Python stage bundles it with the
+FastAPI backend, which serves the built assets itself
+(`backend/main.py` mounts `frontend/dist`). A separate frontend/backend
+image pair would mirror the "two services" deploy option, but for a
+graded, link-testable prototype, one image that runs with a single
+`docker run`/`docker compose up` is less for a reviewer to get wrong.
+
 **LLM provider is pluggable but only Anthropic is implemented.** The choice
 of provider/API key wasn't settled at build time, so `src/agent/llm_adapter.py`
 defines a small `LLMAdapter` protocol; `AnthropicAdapter` is complete,

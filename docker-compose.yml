@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      MONDAY_MODE: ${MONDAY_MODE:-mock}
+      MONDAY_API_TOKEN: ${MONDAY_API_TOKEN:-}
+      MONDAY_WORK_ORDERS_BOARD_ID: ${MONDAY_WORK_ORDERS_BOARD_ID:-}
+      MONDAY_DEALS_BOARD_ID: ${MONDAY_DEALS_BOARD_ID:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
