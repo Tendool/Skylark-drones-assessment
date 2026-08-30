@@ -61,11 +61,16 @@ push once credentials exist. Everything downstream — cleaning, tools, agent,
 UI — was built and tested against real data from day one; switching to
 `MONDAY_MODE=live` is a config change, not a rewrite.
 
-**Streamlit over a custom frontend.** Given the time budget, `st.chat_message`
-gets a working conversational UI with essentially no frontend code, and
-Streamlit Community Cloud is free and link-shareable. The trade-off is less
-UI control (no custom branding, streaming token-by-token responses would take
-more plumbing).
+**FastAPI + React over Streamlit.** The first working version used Streamlit
+for speed. Given this is titled a *full-stack* assignment, I rebuilt the UI
+as a proper split: a FastAPI backend (`backend/main.py`, exposing
+`/api/chat`, `/api/data-quality`, `/api/health`) and a separate React/Vite
+frontend (`frontend/`), talking over REST/JSON. This costs more build time
+than Streamlit and requires picking a session model by hand (in-memory
+per-session tool-use history, keyed by a UUID the frontend holds), but
+demonstrates an actual frontend/backend separation and deploys flexibly —
+one service (FastAPI serving the built React app) or two (static frontend +
+API host) — rather than being locked into Streamlit's runtime model.
 
 **LLM provider is pluggable but only Anthropic is implemented.** The choice
 of provider/API key wasn't settled at build time, so `src/agent/llm_adapter.py`

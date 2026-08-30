@@ -31,7 +31,10 @@ src/agent/orchestrator.py tool-use loop + system prompt
 src/agent/llm_adapter.py  provider seam (Anthropic implemented, OpenAI stubbed)
         │
         ▼
-app/streamlit_app.py   chat UI
+backend/main.py (FastAPI)   /api/chat, /api/data-quality, /api/health
+        │  REST (JSON)
+        ▼
+frontend/ (React + Vite)    chat UI
 ```
 
 One-time, out-of-band (not part of the running app):
@@ -47,7 +50,8 @@ Integration Requirements.
 ## Repo layout
 
 ```
-app/streamlit_app.py        Chat UI
+backend/main.py             FastAPI app: REST endpoints, session state, static-serves frontend/dist
+frontend/                   React + Vite chat UI (src/App.jsx, src/Sidebar.jsx)
 src/monday/                 monday.com client (mock + real) and board schema
 src/data/                   cleaning, data-quality report, cross-board join, cached repo
 src/agent/                  tool schemas/impls, LLM adapter, orchestrator + system prompt
@@ -59,17 +63,35 @@ tests/                      pytest suite (no API keys required)
 
 ## Running locally
 
+Backend (Python):
+
 ```bash
 pip install -r requirements.txt
 python -m pytest tests/ -v          # no credentials needed
 
 # Mock mode (default) -- runs entirely on fixtures/, no monday.com account needed
 export ANTHROPIC_API_KEY=sk-...
-streamlit run app/streamlit_app.py
+uvicorn backend.main:app --reload --port 8000
+```
+
+Frontend (in a second terminal):
+
+```bash
+cd frontend
+npm install
+npm run dev              # http://localhost:5173, proxies API calls to :8000 (see .env.development)
 ```
 
 Mock mode is on by default (`MONDAY_MODE=mock`, or unset) precisely so this
 project is testable without any monday.com setup — see `.env.example`.
+
+For a single deployable service, build the frontend first and let FastAPI
+serve it (`backend/main.py` mounts `frontend/dist` at `/` when present):
+
+```bash
+cd frontend && npm run build && cd ..
+uvicorn backend.main:app --port 8000    # now serves both the UI and the API
+```
 
 ## Connecting to a real monday.com account
 
@@ -90,12 +112,24 @@ project is testable without any monday.com setup — see `.env.example`.
    export MONDAY_WORK_ORDERS_BOARD_ID=<from step 2>
    export MONDAY_DEALS_BOARD_ID=<from step 2>
    export ANTHROPIC_API_KEY=sk-...
-   streamlit run app/streamlit_app.py
+   uvicorn backend.main:app --port 8000
    ```
 
-On Streamlit Community Cloud, set the same variables under the app's
-**Settings → Secrets** instead of shell exports — `app/streamlit_app.py`
-mirrors `st.secrets` into `os.environ` on startup.
+On a host like Render, set the same variables as environment variables /
+secrets in the service settings.
+
+## Deploying
+
+The backend (`backend/main.py`) and frontend (`frontend/`) can ship as one
+service or two:
+
+- **One service** (simplest): `npm run build` in `frontend/`, then deploy the
+  repo to something that runs `uvicorn backend.main:app` — it serves the
+  built UI itself. Works well on Render/Railway/Fly.io.
+- **Two services**: deploy `frontend/` to a static host (e.g. Vercel) and
+  `backend/` to an API host (e.g. Render), setting `VITE_API_BASE` (frontend
+  build-time env var) to the backend's public URL and `CORS_ALLOW_ORIGINS`
+  (backend env var) to the frontend's origin.
 
 ## Environment variables
 
@@ -109,6 +143,8 @@ See `.env.example`. Summary:
 | `MONDAY_DEALS_BOARD_ID` | — | required when `MONDAY_MODE=live` |
 | `LLM_PROVIDER` | `anthropic` | `anthropic` (implemented) or `openai` (stub, see `src/agent/llm_adapter.py`) |
 | `ANTHROPIC_API_KEY` | — | required for the chat agent to run |
+| `CORS_ALLOW_ORIGINS` | `*` | backend: comma-separated allowed origins (set to the frontend's URL when hosted separately) |
+| `VITE_API_BASE` | *(empty)* | frontend build-time: backend URL when hosted separately; leave empty for same-origin (single-service) deploys |
 
 ## Tests
 
