@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: skylark-bi-agent
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONDAY_MODE
+        value: live
+      - key: MONDAY_API_TOKEN
+        sync: false
+      - key: MONDAY_WORK_ORDERS_BOARD_ID
+        sync: false
+      - key: MONDAY_DEALS_BOARD_ID
+        sync: false
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CORS_ALLOW_ORIGINS
+        value: "*"
