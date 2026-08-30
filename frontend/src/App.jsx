@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import Sidebar from "./Sidebar.jsx";
 import MarkdownLite from "./markdownLite.jsx";
+import { MoonIcon, SendIcon, SparkleIcon, SunIcon } from "./icons.jsx";
 import { getDataQuality, getHealth, refreshData, resetSession, sendChatMessage } from "./api.js";
 import "./App.css";
 
 const SESSION_STORAGE_KEY = "skylark-bi-session-id";
+const THEME_STORAGE_KEY = "skylark-bi-theme";
 
 const EXAMPLE_QUESTIONS = [
   "How's our pipeline looking for the energy sector this quarter?",
@@ -13,7 +15,29 @@ const EXAMPLE_QUESTIONS = [
   "What data quality issues should I know about?",
 ];
 
+function useTheme() {
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved) return saved;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  return [theme, () => setTheme((t) => (t === "dark" ? "light" : "dark"))];
+}
+
+function autosize(el) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+}
+
 export default function App() {
+  const [theme, toggleTheme] = useTheme();
   const [health, setHealth] = useState(null);
   const [quality, setQuality] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -23,6 +47,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [sessionId, setSessionId] = useState(() => sessionStorage.getItem(SESSION_STORAGE_KEY));
   const bottomRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setHealth({ monday_mode: "mock", llm_ready: false, llm_error: "unreachable" }));
@@ -51,6 +76,7 @@ export default function App() {
     setError(null);
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
+    requestAnimationFrame(() => autosize(textareaRef.current));
     setSending(true);
 
     try {
@@ -73,6 +99,13 @@ export default function App() {
     setError(null);
   }
 
+  function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }
+
   const llmBlocked = health && !health.llm_ready;
 
   return (
@@ -82,12 +115,17 @@ export default function App() {
       <main className="chat-pane">
         <header className="chat-header">
           <div>
-            <h1>Skylark Drones — Business Intelligence Agent</h1>
+            <h1>Business Intelligence Agent</h1>
             <p>Ask about pipeline health, delivery status, revenue, or sector performance.</p>
           </div>
-          <button className="new-chat-button" onClick={handleNewConversation}>
-            New conversation
-          </button>
+          <div className="header-actions">
+            <button className="icon-button" onClick={toggleTheme} title="Toggle theme" aria-label="Toggle color theme">
+              {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+            </button>
+            <button className="new-chat-button" onClick={handleNewConversation}>
+              New conversation
+            </button>
+          </div>
         </header>
 
         {llmBlocked && (
@@ -100,7 +138,11 @@ export default function App() {
         <div className="messages">
           {messages.length === 0 && !llmBlocked && (
             <div className="empty-state">
-              <p>Try asking:</p>
+              <div className="empty-icon">
+                <SparkleIcon />
+              </div>
+              <h2>What would you like to know?</h2>
+              <p>Try one of these, or ask your own question about the boards.</p>
               <div className="example-chips">
                 {EXAMPLE_QUESTIONS.map((q) => (
                   <button key={q} onClick={() => handleSend(q)}>
@@ -112,7 +154,10 @@ export default function App() {
           )}
 
           {messages.map((m, i) => (
-            <div key={i} className={`message message-${m.role}`}>
+            <div key={i} className={`message-row message-${m.role}`}>
+              <div className={`avatar ${m.role === "user" ? "avatar-user" : "avatar-assistant"}`}>
+                {m.role === "user" ? "You" : "SD"}
+              </div>
               <div className="message-bubble">
                 <MarkdownLite text={m.content} />
               </div>
@@ -120,8 +165,15 @@ export default function App() {
           ))}
 
           {sending && (
-            <div className="message message-assistant">
-              <div className="message-bubble message-pending">Checking the boards…</div>
+            <div className="message-row message-assistant">
+              <div className="avatar avatar-assistant">SD</div>
+              <div className="message-bubble">
+                <span className="typing-dots">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              </div>
             </div>
           )}
           <div ref={bottomRef} />
@@ -136,16 +188,25 @@ export default function App() {
             handleSend();
           }}
         >
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="e.g. How's our pipeline looking for the energy sector this quarter?"
-            disabled={llmBlocked}
-          />
-          <button type="submit" disabled={llmBlocked || sending || !input.trim()}>
-            Send
+          <div className="composer-input-wrap">
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                autosize(e.target);
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="e.g. How's our pipeline looking for the energy sector this quarter?"
+              disabled={llmBlocked}
+            />
+          </div>
+          <button type="submit" className="send-button" disabled={llmBlocked || sending || !input.trim()} aria-label="Send message">
+            <SendIcon />
           </button>
         </form>
+        <div className="composer-hint">Enter to send · Shift + Enter for a new line</div>
       </main>
     </div>
   );

@@ -1,16 +1,106 @@
 :root {
   color-scheme: light;
-  --bg: #f6f7f9;
+
+  --bg: #f3f5f9;
   --panel: #ffffff;
-  --border: #e2e5ea;
-  --text: #1c2128;
-  --text-muted: #5b6472;
-  --accent: #2f6feb;
+  --panel-alt: #f8f9fc;
+  --border: #e4e7ee;
+  --border-strong: #d3d8e2;
+
+  --text: #14171f;
+  --text-muted: #6b7280;
+  --text-faint: #9aa1ae;
+
+  --accent: #2f5fdb;
+  --accent-hover: #2650bd;
+  --accent-soft: #eaf0ff;
   --accent-contrast: #ffffff;
-  --user-bubble: #2f6feb;
-  --assistant-bubble: #eef1f6;
+
+  --user-bubble: linear-gradient(155deg, #3766e0, #2a4fc4);
+  --assistant-bubble: #f2f4f8;
+
+  --success-bg: #e7f6ee;
+  --success-text: #1c7a45;
+  --warning-bg: #fff4e0;
+  --warning-text: #9a6400;
   --error-bg: #fdecec;
-  --error-text: #9c2b2b;
+  --error-text: #b5273a;
+
+  --shadow-sm: 0 1px 2px rgba(20, 23, 31, 0.05);
+  --shadow-md: 0 8px 24px rgba(20, 23, 31, 0.08);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-alt: #1d212a;
+    --border: #2a2f3a;
+    --border-strong: #383f4d;
+
+    --text: #eef0f4;
+    --text-muted: #9aa1ae;
+    --text-faint: #6b7280;
+
+    --accent: #6690ff;
+    --accent-hover: #83a5ff;
+    --accent-soft: #1c2740;
+    --accent-contrast: #0f1115;
+
+    --user-bubble: linear-gradient(155deg, #4f79f0, #3557c9);
+    --assistant-bubble: #1f232c;
+
+    --success-bg: #12301f;
+    --success-text: #5fd88f;
+    --warning-bg: #332707;
+    --warning-text: #f0b955;
+    --error-bg: #391a1d;
+    --error-text: #ff8b93;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-alt: #1d212a;
+  --border: #2a2f3a;
+  --border-strong: #383f4d;
+
+  --text: #eef0f4;
+  --text-muted: #9aa1ae;
+  --text-faint: #6b7280;
+
+  --accent: #6690ff;
+  --accent-hover: #83a5ff;
+  --accent-soft: #1c2740;
+  --accent-contrast: #0f1115;
+
+  --user-bubble: linear-gradient(155deg, #4f79f0, #3557c9);
+  --assistant-bubble: #1f232c;
+
+  --success-bg: #12301f;
+  --success-text: #5fd88f;
+  --warning-bg: #332707;
+  --warning-text: #f0b955;
+  --error-bg: #391a1d;
+  --error-text: #ff8b93;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -25,7 +115,28 @@ body,
 }
 
 body {
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
