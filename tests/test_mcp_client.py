@@ -1,7 +1,9 @@
 """Verifies MCPMondayClient against a throwaway in-process MCP server that
-mimics monday.com's published get_board_info/get_board_items tool contracts
-(see src/monday/mcp_client.py's docstring for the docs this was checked
-against). No network access, no real monday.com account needed."""
+mimics monday.com's real get_board_info/get_board_items_page tool contracts,
+as confirmed against a live monday.com account (see DECISION_LOG.md) --
+notably get_board_items_page (not get_board_items), and column_values coming
+back as a flat {column_id: text} dict rather than a list. No network access,
+no real monday.com account needed to run this test."""
 import socket
 import threading
 import time
@@ -29,18 +31,18 @@ def _make_server() -> MCPServer:
             {"id": "amount", "title": "Amount in Rupees (Incl of GST) (Masked)", "type": "numbers"},
         ],
         "items": [
-            {"id": "1", "name": "SER-1", "column_values": [{"id": "sector", "text": "Mining", "value": None}, {"id": "amount", "text": "1000", "value": None}]},
-            {"id": "2", "name": "SER-2", "column_values": [{"id": "sector", "text": "Renewables", "value": None}, {"id": "amount", "text": "2000", "value": None}]},
+            {"id": "1", "name": "SER-1", "column_values": {"sector": "Mining", "amount": "1000"}},
+            {"id": "2", "name": "SER-2", "column_values": {"sector": "Renewables", "amount": "2000"}},
         ],
     }
 
     @server.tool()
     def get_board_info(boardId: int) -> dict:
         assert str(boardId) == BOARD_ID
-        return {"columns": board["columns"]}
+        return {"board": {"columns": board["columns"]}}
 
     @server.tool()
-    def get_board_items(boardId: int, includeColumns: bool = False, limit: int = 25, cursor: str | None = None) -> dict:
+    def get_board_items_page(boardId: int, includeColumns: bool = False, limit: int = 25, cursor: str | None = None) -> dict:
         assert str(boardId) == BOARD_ID
         idx = int(cursor) if cursor else 0
         page = board["items"][idx : idx + 1]  # 1 item per page, to exercise pagination

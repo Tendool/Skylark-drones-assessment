@@ -2,19 +2,18 @@
 server** (https://mcp.monday.com/mcp, Streamable HTTP transport) instead of
 calling the GraphQL API directly -- see GraphQLMondayClient for that
 alternative. Only ever calls the read tools `get_board_info` and
-`get_board_items`; this project's Integration Requirements are read-only.
+`get_board_items_page`; this project's Integration Requirements are read-only.
 
-Verified against monday.com's published Platform MCP docs (developer.monday.com):
-tool names/schemas for get_board_info and get_board_items, the hosted
-Streamable HTTP endpoint, and personal-API-token auth via a Bearer header.
-Not exercised against a live monday.com account during development (no
-account was available) -- see DECISION_LOG.md.
+Verified live against a real monday.com account (see DECISION_LOG.md): the
+tool is `get_board_items_page`, not `get_board_items` as monday.com's docs
+suggested, and its `column_values` comes back as a flat {column_id: text}
+dict rather than a list of {id, text, value} objects -- both handled below.
 """
 from __future__ import annotations
 
 import asyncio
 
-import httpx2
+import httpx
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
@@ -45,8 +44,8 @@ class MCPMondayClient:
 
     # -- internals --------------------------------------------------------
 
-    def _http_client(self) -> httpx2.AsyncClient:
-        return httpx2.AsyncClient(
+    def _http_client(self) -> httpx.AsyncClient:
+        return httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self._token}", "Api-Version": self._api_version},
             timeout=30,
         )
@@ -86,22 +85,24 @@ class MCPMondayClient:
                         args = {"boardId": int(board_id), "includeColumns": True, "limit": PAGE_SIZE}
                         if cursor:
                             args["cursor"] = cursor
-                        data = await self._call_tool(session, "get_board_items", args)
+                        data = await self._call_tool(session, "get_board_items_page", args)
 
                         for raw_item in data.get("items", []):
+                            # get_board_items_page returns column_values as a flat
+                            # {column_id: text} dict, not a list of {id,text,value}.
                             items.append(
                                 {
                                     "id": raw_item["id"],
                                     "name": raw_item["name"],
                                     "column_values": [
                                         {
-                                            "id": cv["id"],
-                                            "title": columns.get(cv["id"], {}).get("title", cv["id"]),
-                                            "type": columns.get(cv["id"], {}).get("type", "text"),
-                                            "text": cv.get("text"),
-                                            "value": cv.get("value"),
+                                            "id": col_id,
+                                            "title": columns.get(col_id, {}).get("title", col_id),
+                                            "type": columns.get(col_id, {}).get("type", "text"),
+                                            "text": text,
+                                            "value": None,
                                         }
-                                        for cv in raw_item.get("column_values", [])
+                                        for col_id, text in raw_item.get("column_values", {}).items()
                                     ],
                                 }
                             )
