@@ -1,4 +1,4 @@
-import { BrandMark, RefreshIcon } from "./icons.jsx";
+import { RefreshIcon } from "./icons.jsx";
 
 function SkeletonBlock() {
   return (
@@ -43,11 +43,10 @@ export default function Sidebar({ health, quality, onRefresh, refreshing }) {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <BrandMark />
-        <div className="brand-text">
-          <div className="brand-name">Skylark Drones</div>
-          <div className="brand-tagline">Business Intelligence Agent</div>
+        <div className="brand-logo-wrap">
+          <img src="/skylark-drones-logo.png" alt="Skylark Drones" className="brand-logo" />
         </div>
+        <div className="brand-tagline">Business Intelligence Agent</div>
       </div>
 
       <div className="sidebar-body">
@@ -88,7 +87,15 @@ export default function Sidebar({ health, quality, onRefresh, refreshing }) {
         )}
       </div>
 
-      <div className="sidebar-footer">Work Orders + Deals boards · read-only</div>
+      <div className="sidebar-footer">
+        <div>Work Orders + Deals boards · read-only</div>
+        <div className="sidebar-credit">
+          Made by{" "}
+          <a href="https://tendool.me/" target="_blank" rel="noopener noreferrer">
+            Tendool Srivatsav Sala
+          </a>
+        </div>
+      </div>
     </aside>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Sidebar from "./Sidebar.jsx";
 import Message from "./Message.jsx";
-import { BotIcon, MoonIcon, SendIcon, SparkleIcon, SunIcon } from "./icons.jsx";
+import { BotIcon, EmptyStateIllustration, MoonIcon, SendIcon, SunIcon } from "./icons.jsx";
 import { getDataQuality, getHealth, refreshData, resetSession, sendChatMessage } from "./api.js";
 import "./App.css";
 
@@ -16,11 +16,7 @@ const EXAMPLE_QUESTIONS = [
 ];
 
 function useTheme() {
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved) return saved;
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  });
+  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || "light");
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -110,6 +106,12 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <div className="bg-mesh" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+
       <Sidebar health={health} quality={quality} onRefresh={handleRefresh} refreshing={refreshing} />
 
       <main className="chat-pane">
@@ -139,7 +141,7 @@ export default function App() {
           {messages.length === 0 && !llmBlocked && (
             <div className="empty-state">
               <div className="empty-icon">
-                <SparkleIcon />
+                <EmptyStateIllustration />
               </div>
               <h2>What would you like to know?</h2>
               <p>Try one of these, or ask your own question about the boards.</p>

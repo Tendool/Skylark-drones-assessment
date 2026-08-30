@@ -1,23 +1,23 @@
 :root {
   color-scheme: light;
 
-  --bg: #f3f5f9;
+  --bg: #fdf9f6;
   --panel: #ffffff;
-  --panel-alt: #f8f9fc;
-  --border: #e4e7ee;
-  --border-strong: #d3d8e2;
+  --panel-alt: #fff5ee;
+  --border: #f0e4da;
+  --border-strong: #e4d2c2;
 
-  --text: #14171f;
-  --text-muted: #6b7280;
-  --text-faint: #9aa1ae;
+  --text: #211a15;
+  --text-muted: #766a60;
+  --text-faint: #a89a8d;
 
-  --accent: #2f5fdb;
-  --accent-hover: #2650bd;
-  --accent-soft: #eaf0ff;
+  --accent: #f1592a;
+  --accent-hover: #d8461a;
+  --accent-soft: #ffede2;
   --accent-contrast: #ffffff;
 
-  --user-bubble: linear-gradient(155deg, #3766e0, #2a4fc4);
-  --assistant-bubble: #f2f4f8;
+  --user-bubble: linear-gradient(155deg, #ff8a52, #f1592a);
+  --assistant-bubble: #fff6f0;
 
   --success-bg: #e7f6ee;
   --success-text: #1c7a45;
@@ -26,71 +26,56 @@
   --error-bg: #fdecec;
   --error-text: #b5273a;
 
-  --shadow-sm: 0 1px 2px rgba(20, 23, 31, 0.05);
-  --shadow-md: 0 8px 24px rgba(20, 23, 31, 0.08);
+  --shadow-sm: 0 1px 2px rgba(60, 35, 20, 0.06);
+  --shadow-md: 0 8px 24px rgba(60, 35, 20, 0.1);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
 
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---------- Glassmorphism tokens ---------- */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 8px 32px rgba(120, 60, 20, 0.1), inset 0 1px 0 var(--glass-highlight);
+  --glass-blur: 22px;
+
+  --mesh-1: #ffb199;
+  --mesh-2: #ffd59e;
+  --mesh-3: #ff8c5a;
+  --mesh-opacity: 0.45;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root[data-theme="dark"] {
     color-scheme: dark;
-
-    --bg: #0f1115;
-    --panel: #171a21;
-    --panel-alt: #1d212a;
-    --border: #2a2f3a;
-    --border-strong: #383f4d;
-
-    --text: #eef0f4;
-    --text-muted: #9aa1ae;
-    --text-faint: #6b7280;
-
-    --accent: #6690ff;
-    --accent-hover: #83a5ff;
-    --accent-soft: #1c2740;
-    --accent-contrast: #0f1115;
-
-    --user-bubble: linear-gradient(155deg, #4f79f0, #3557c9);
-    --assistant-bubble: #1f232c;
-
-    --success-bg: #12301f;
-    --success-text: #5fd88f;
-    --warning-bg: #332707;
-    --warning-text: #f0b955;
-    --error-bg: #391a1d;
-    --error-text: #ff8b93;
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.45);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0f1115;
-  --panel: #171a21;
-  --panel-alt: #1d212a;
-  --border: #2a2f3a;
-  --border-strong: #383f4d;
+  --bg: #100d0b;
+  --panel: #1c1814;
+  --panel-alt: #221c17;
+  --border: #362c23;
+  --border-strong: #493a2d;
 
-  --text: #eef0f4;
-  --text-muted: #9aa1ae;
-  --text-faint: #6b7280;
+  --text: #f5efe9;
+  --text-muted: #b0a297;
+  --text-faint: #786a5e;
 
-  --accent: #6690ff;
-  --accent-hover: #83a5ff;
-  --accent-soft: #1c2740;
-  --accent-contrast: #0f1115;
+  --accent: #ff8a52;
+  --accent-hover: #ffa06e;
+  --accent-soft: #3a2313;
+  --accent-contrast: #1a0f08;
 
-  --user-bubble: linear-gradient(155deg, #4f79f0, #3557c9);
-  --assistant-bubble: #1f232c;
+  --user-bubble: linear-gradient(155deg, #ff9a5f, #e8531f);
+  --assistant-bubble: #241e19;
 
   --success-bg: #12301f;
   --success-text: #5fd88f;
@@ -101,6 +86,18 @@
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.45);
+
+  --glass-bg: rgba(28, 24, 20, 0.55);
+  --glass-bg-strong: rgba(28, 24, 20, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 var(--glass-highlight);
+  --glass-blur: 22px;
+
+  --mesh-1: #7a3a20;
+  --mesh-2: #8a5a1c;
+  --mesh-3: #6b2f16;
+  --mesh-opacity: 0.4;
 }
 
 * {
@@ -119,6 +116,90 @@ body {
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Ambient gradient mesh backdrop ---------- */
+/* Fixed, blurred color blobs behind the whole app so the glass panels have
+   something to look "frosted" over. Decorative only. */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-mesh span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: var(--mesh-opacity);
+  will-change: transform;
+}
+
+.bg-mesh span:nth-child(1) {
+  width: 46vw;
+  height: 46vw;
+  top: -12vw;
+  left: -8vw;
+  background: var(--mesh-1);
+  animation: drift-a 26s ease-in-out infinite;
+}
+
+.bg-mesh span:nth-child(2) {
+  width: 38vw;
+  height: 38vw;
+  bottom: -14vw;
+  right: -6vw;
+  background: var(--mesh-2);
+  animation: drift-b 32s ease-in-out infinite;
+}
+
+.bg-mesh span:nth-child(3) {
+  width: 30vw;
+  height: 30vw;
+  bottom: 8vh;
+  left: 22vw;
+  background: var(--mesh-3);
+  animation: drift-c 22s ease-in-out infinite;
+}
+
+@keyframes drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(4vw, 5vh) scale(1.08); }
+}
+
+@keyframes drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5vw, -3vh) scale(1.1); }
+}
+
+@keyframes drift-c {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(3vw, -4vh) scale(0.94); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-mesh span {
+    animation: none;
+  }
+}
+
+/* ---------- Shared glass surface ---------- */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  box-shadow: var(--glass-shadow);
 }
 
 ::selection {

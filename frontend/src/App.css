@@ -1,4 +1,5 @@
 .app-shell {
+  position: relative;
   display: grid;
   grid-template-columns: 300px 1fr;
   height: 100vh;
@@ -8,41 +9,49 @@
 /* ---------- Sidebar ---------- */
 
 .sidebar {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  background: var(--panel);
-  border-right: 1px solid var(--border);
+  background: var(--glass-bg);
+  border-right: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  box-shadow: var(--glass-shadow);
   overflow-y: auto;
 }
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
-.brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  flex-shrink: 0;
+.brand-logo-wrap {
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, padding 0.15s ease;
 }
 
-.brand-text {
-  line-height: 1.25;
-  min-width: 0;
+/* The logo PNG has dark-gray text baked in with no dark-mode variant, so it
+   gets a light backing chip once the page itself goes dark. */
+:root[data-theme="dark"] .brand-logo-wrap {
+  background: #ffffff;
+  padding: 8px 12px;
+  box-shadow: var(--shadow-sm);
 }
 
-.brand-text .brand-name {
-  font-weight: 700;
-  font-size: 14.5px;
-  color: var(--text);
+.brand-logo {
+  display: block;
+  height: 34px;
+  width: auto;
 }
 
-.brand-text .brand-tagline {
+.brand-tagline {
   font-size: 11.5px;
+  font-weight: 500;
   color: var(--text-faint);
   white-space: nowrap;
 }
@@ -112,13 +121,15 @@
   margin-top: 10px;
   padding: 9px 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--panel);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
   color: var(--text);
   cursor: pointer;
   font-size: 13px;
   font-family: inherit;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -128,6 +139,7 @@
 .ghost-button:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .ghost-button:disabled {
@@ -147,10 +159,18 @@
 
 .quality-section {
   margin-bottom: 16px;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.6));
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.6));
   border-radius: var(--radius-md);
   padding: 12px 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quality-section:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .quality-section-title {
@@ -232,14 +252,31 @@
 
 .sidebar-footer {
   padding: 14px 20px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--glass-border);
   font-size: 11.5px;
   color: var(--text-faint);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-credit a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.sidebar-credit a:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 /* ---------- Chat pane ---------- */
 
 .chat-pane {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -251,8 +288,10 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 18px 28px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
 }
 
 .chat-header h1 {
@@ -279,24 +318,29 @@
   width: 34px;
   height: 34px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--panel);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
   color: var(--text-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 
 .icon-button:hover {
   border-color: var(--accent);
   color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .new-chat-button {
-  border: 1px solid var(--border);
-  background: var(--panel);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
   border-radius: var(--radius-sm);
   padding: 8px 14px;
   font-size: 13px;
@@ -304,12 +348,13 @@
   cursor: pointer;
   white-space: nowrap;
   color: var(--text);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 
 .new-chat-button:hover {
   border-color: var(--accent);
   color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .messages {
@@ -330,9 +375,22 @@
 }
 
 .empty-state .empty-icon {
-  color: var(--accent);
-  opacity: 0.85;
-  margin-bottom: 14px;
+  color: var(--text-faint);
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  animation: float-hero 5s ease-in-out infinite;
+}
+
+@keyframes float-hero {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-state .empty-icon {
+    animation: none;
+  }
 }
 
 .empty-state h2 {
@@ -354,8 +412,10 @@
 }
 
 .example-chips button {
-  border: 1px solid var(--border);
-  background: var(--panel);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
   border-radius: 999px;
   padding: 9px 15px;
   font-size: 13px;
@@ -413,9 +473,11 @@
 }
 
 .avatar-assistant {
-  background: var(--panel-alt);
+  background: var(--glass-bg-strong);
   color: var(--text-muted);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
 }
 
 .message-bubble-wrap {
@@ -526,7 +588,10 @@
 }
 
 .message-assistant .message-bubble {
-  background: var(--assistant-bubble);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
   color: var(--text);
   border-bottom-left-radius: 4px;
 }
@@ -573,6 +638,9 @@
   display: flex;
   gap: 8px;
   align-items: flex-start;
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid transparent;
 }
 
 .banner code {
@@ -584,7 +652,8 @@
 }
 
 .banner-error {
-  background: var(--error-bg);
+  background: color-mix(in srgb, var(--error-bg) 80%, transparent);
+  border-color: color-mix(in srgb, var(--error-text) 25%, transparent);
   color: var(--error-text);
 }
 
@@ -593,16 +662,18 @@
   align-items: flex-end;
   gap: 10px;
   padding: 16px 28px 22px;
-  border-top: 1px solid var(--border);
-  background: var(--panel);
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
 }
 
 .composer-input-wrap {
   flex: 1;
   display: flex;
   align-items: flex-end;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 4px 4px 4px 16px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
