@@ -8,6 +8,78 @@ the way, and surfacing what it can't be sure about instead of hiding it.
 See [`DECISION_LOG.md`](DECISION_LOG.md) for assumptions, trade-offs, and the
 interpretation of the optional "leadership updates" requirement.
 
+## Approach
+
+1. **Read the real data before designing anything.** Before writing code, I
+   loaded both provided spreadsheets and inspected them by hand: column
+   names, missingness per column, unique values per categorical field. That's
+   where the two load-bearing findings came from — the `WOCOMPANY_002` vs
+   `COMPANY002` client-code mismatch (the actual cross-board join key) and
+   two rows in the Deals sheet that were corrupted spreadsheet-header pastes.
+   Neither is mentioned in the assignment brief; both would have silently
+   broken any cross-board metric if missed.
+2. **Build the data layer and tools first, the LLM last.** Cleaning,
+   normalization, the data-quality report, and every BI "tool" function were
+   written and unit-tested against the real (masked) data with no LLM in the
+   loop at all — they're plain, verifiable Python. The agent only had to get
+   good at *calling* those tools correctly and being honest about their
+   caveats, not at doing arithmetic itself.
+3. **Get to something runnable end-to-end early, then iterate on quality.**
+   The first working version (data → tools → chat) shipped before I owned
+   any monday.com credentials or a final tech-stack/hosting decision, using a
+   mock client generated from the real spreadsheets. UI (Streamlit → React),
+   Docker, and visual polish all came after that skeleton worked, each
+   verified in a real browser (Playwright) rather than assumed from reading
+   the code.
+4. **State assumptions instead of stalling on them.** Ambiguities that
+   needed a person to resolve (monday.com credentials, sample data files,
+   LLM provider, hosting target, UI framework) were surfaced as explicit
+   questions; ambiguities inherent to the data or the business question
+   (which date field "this quarter" means, what "revenue" means when there
+   are four different money columns, how to map "energy sector" to the
+   actual taxonomy) were resolved as documented assumptions in the system
+   prompt and Decision Log, per the assignment's own guidance to proceed and
+   document rather than block on every open question.
+
+## AI tools used
+
+This project was built with **Claude** (Anthropic), operating as an
+autonomous coding agent (Claude Code) with real tool access — reading the
+provided files, writing/running code, executing tests, running a real
+browser (Playwright) to visually verify the UI, and building/running Docker
+containers to verify the deployment path. I directed it turn by turn
+(architecture choices, data findings, UI/stack pivots, what to verify) and
+reviewed the diffs and screenshots at each step rather than accepting a
+single unreviewed generation. I can walk through and justify any file in
+this repo; nothing here is an unexamined pasted answer.
+
+## Challenges faced
+
+- **Silent data traps.** The client-code format mismatch and the corrupted
+  Deals rows would not have surfaced from reading the assignment brief —
+  only from inspecting the actual data — and both would have quietly
+  produced wrong cross-board numbers if missed.
+- **Genuine ambiguity in "revenue" and "this quarter."** Work Orders has
+  four different money columns with very different fill rates, and no field
+  says which date a time-boxed question should anchor on. There's no single
+  correct answer here, so the system is designed to make its assumption
+  visible in every answer rather than pick one silently (see Decision Log).
+- **Verifying an agent I can't fully test.** With no LLM API key or
+  monday.com account available during the build, I verified the
+  non-LLM-dependent layers with unit tests and verified the full chat loop
+  by substituting a stubbed LLM client in the same tool-use protocol Claude
+  uses, rather than shipping the orchestration layer unexercised.
+- **Sandbox-specific Docker networking.** `npm ci` inside the containerized
+  build was unreliable on this development sandbox's network (a known npm
+  CLI issue under unstable connections), unrelated to the Dockerfile itself
+  — verified by building the frontend on the host and the backend stage in
+  Docker separately, then confirming the assembled runtime image serves
+  correctly end-to-end.
+
+## Potential improvements
+
+See "What I'd do differently with more time" in [`DECISION_LOG.md`](DECISION_LOG.md).
+
 ## Architecture
 
 ```
