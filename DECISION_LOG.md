@@ -41,25 +41,30 @@ genuinely ambiguous.
 
 ## Trade-offs chosen and why
 
-**Direct GraphQL API over MCP.** Both are allowed by the assignment. I chose
-a small, purpose-built read-only GraphQL client
-(`src/monday/graphql_client.py`) over monday.com's MCP server because it's a
-single dependency-free HTTP call I fully control and can unit-test, and it
-deploys as one process with no separate MCP server to host and keep alive for
-a graded, link-testable demo. The trade-off: I don't get MCP's
-tool-discovery for free, and a future integration with other monday.com
-boards means writing more GraphQL by hand instead of getting it from the MCP
-server's schema introspection.
+**monday.com's own MCP server, with a direct-API fallback kept.** Both are
+allowed ("MCP or API — your choice"). I first built a read-only GraphQL
+client (`src/monday/graphql_client.py`), assuming MCP would mean hosting a
+separate server process alongside the app for no functional gain. Checking
+monday.com's docs corrected that: monday.com hosts the MCP server itself, at
+`https://mcp.monday.com/mcp` (Streamable HTTP, same personal API token as a
+Bearer header) — nothing of ours to deploy. That removed the objection, so
+`MONDAY_MODE=live` now goes through it (`src/monday/mcp_client.py`, the
+documented `get_board_info`/`get_board_items` tools, official `mcp` Python
+SDK); the direct-GraphQL client is kept as `MONDAY_MODE=api`, since a hard
+dependency on monday.com's own MCP uptime is itself worth a fallback for.
+Built and unit-tested against an in-process MCP server mirroring monday.com's
+published tool schemas (`tests/test_mcp_client.py`) — not yet exercised
+against the real endpoint, since no live account was available.
 
-**Mock/live client behind one interface, built first.** I had no monday.com
+**Mock client behind the same interface, built first.** I had no monday.com
 credentials in the assessment environment. Rather than block on that, I built
-`MondayClient` as an interface both a fixture-backed mock and the real
-GraphQL client implement identically (`{"id","name","column_values":[...]}`),
-generated the mock fixtures from the **real** provided spreadsheets (not
-synthetic data), and wrote `scripts/import_to_monday.py` to do the real
-push once credentials exist. Everything downstream — cleaning, tools, agent,
-UI — was built and tested against real data from day one; switching to
-`MONDAY_MODE=live` is a config change, not a rewrite.
+`MondayClient` as one interface every implementation (mock, MCP, direct API)
+satisfies identically (`{"id","name","column_values":[...]}`), generated the
+mock fixtures from the **real** provided spreadsheets (not synthetic data),
+and wrote `scripts/import_to_monday.py` to do the real push once credentials
+exist. Everything downstream — cleaning, tools, agent, UI — was built and
+tested against real data from day one; switching `MONDAY_MODE` is a config
+change, not a rewrite.
 
 **FastAPI + React over Streamlit.** The first working version used Streamlit
 for speed. Given this is titled a *full-stack* assignment, I rebuilt the UI
@@ -97,7 +102,7 @@ context window.
 - Fuzzy/approximate client matching for the small number of Work Orders
   without a resolvable client code, instead of excluding them from joins.
 - A real caching layer with TTL + background refresh instead of "cache for
-  the Streamlit session, manual refresh button."
+  the process lifetime, manual refresh button."
 - Finish the OpenAI adapter and add a lightweight eval set (a dozen founder
   questions with expected tool calls) to catch prompt regressions.
 - Push tool-call transcripts into the UI (collapsible) so a skeptical founder

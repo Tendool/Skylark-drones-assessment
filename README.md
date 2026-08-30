@@ -75,6 +75,13 @@ this repo; nothing here is an unexamined pasted answer.
   — verified by building the frontend on the host and the backend stage in
   Docker separately, then confirming the assembled runtime image serves
   correctly end-to-end.
+- **Switching to monday.com's MCP server without a real account to test
+  against.** I didn't trust assumptions here — I looked up monday.com's
+  actual developer docs for the hosted MCP endpoint, auth, and exact tool
+  schemas, then verified the client mechanically against a throwaway
+  in-process MCP server built to those same documented schemas
+  (`tests/test_mcp_client.py`), rather than writing MCP-calling code that
+  had never actually been run.
 
 ## Potential improvements
 
@@ -84,9 +91,10 @@ See "What I'd do differently with more time" in [`DECISION_LOG.md`](DECISION_LOG
 
 ```
 monday.com (Work Orders, Deals boards)
-        │  read-only GraphQL API
+        │  read-only, via monday.com's hosted MCP server (mcp.monday.com)
         ▼
-src/monday/graphql_client.py  ──┐
+src/monday/mcp_client.py      ──┐
+src/monday/graphql_client.py  ──┤  (direct-API alternative, MONDAY_MODE=api)
 src/monday/mock_client.py     ──┴─►  MondayClient interface (client_interface.py)
         │
         ▼
@@ -227,6 +235,12 @@ docker run --rm -e MONDAY_API_TOKEN=eyJ... skylark-bi-agent \
    uvicorn backend.main:app --port 8000
    ```
 
+`MONDAY_MODE=live` reads through monday.com's own hosted MCP server
+(`https://mcp.monday.com/mcp`, via `src/monday/mcp_client.py`) rather than
+calling the GraphQL API directly — same API token, no extra setup. The
+direct-GraphQL client built earlier is still available as `MONDAY_MODE=api`
+if you'd rather not depend on monday.com's MCP server (see Decision Log).
+
 On a host like Render, set the same variables as environment variables /
 secrets in the service settings.
 
@@ -251,10 +265,11 @@ See `.env.example`. Summary:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `MONDAY_MODE` | `mock` | `mock` (fixtures) or `live` (real monday.com API) |
-| `MONDAY_API_TOKEN` | — | required when `MONDAY_MODE=live` |
-| `MONDAY_WORK_ORDERS_BOARD_ID` | — | required when `MONDAY_MODE=live` |
-| `MONDAY_DEALS_BOARD_ID` | — | required when `MONDAY_MODE=live` |
+| `MONDAY_MODE` | `mock` | `mock` (fixtures), `live` (real account via monday.com's MCP server), or `api` (real account via direct GraphQL) |
+| `MONDAY_API_TOKEN` | — | required when `MONDAY_MODE` is `live` or `api` |
+| `MONDAY_WORK_ORDERS_BOARD_ID` | — | required when `MONDAY_MODE` is `live` or `api` |
+| `MONDAY_DEALS_BOARD_ID` | — | required when `MONDAY_MODE` is `live` or `api` |
+| `MONDAY_MCP_URL` | `https://mcp.monday.com/mcp` | override only for testing against a different MCP endpoint |
 | `LLM_PROVIDER` | `anthropic` | `anthropic` (implemented) or `openai` (stub, see `src/agent/llm_adapter.py`) |
 | `ANTHROPIC_API_KEY` | — | required for the chat agent to run |
 | `CORS_ALLOW_ORIGINS` | `*` | backend: comma-separated allowed origins (set to the frontend's URL when hosted separately) |
@@ -264,5 +279,7 @@ See `.env.example`. Summary:
 
 `python -m pytest tests/ -v` — covers client-code normalization, sector/status
 canonicalization, the corrupted-row-drop logic found in the real Deals sheet,
-the cross-board join, and every agent tool running against the real (masked)
-sample data end to end. None of it needs network access or API keys.
+the cross-board join, every agent tool running against the real (masked)
+sample data end to end, and `MCPMondayClient` against a throwaway in-process
+MCP server that mimics monday.com's documented tool contracts. None of it
+needs network access, API keys, or a real monday.com account.
